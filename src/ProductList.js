@@ -33,16 +33,23 @@ const ProductList = () => {
     setSelectedLabels(selectedOptions);
   };
 
-  // Filter and sort products based on selected labels and criteria
-  const filteredProducts = selectedLabels.length > 0
-    ? products.filter(product =>
-        product.labels.some(label =>
-          selectedLabels.some(selectedLabel => selectedLabel.value === label.name)
-        )
-      )
-    : products;
+  useEffect(() => {
+    if (selectedLabels.length > 0) {
+      const labelParams = selectedLabels.map(label => `labels=${label.value}`).join('&');
+      fetch(`${URL}/cocktails?${labelParams}`)
+        .then(response => response.json())
+        .then(data => setProducts(data))
+        .catch(error => console.error('Error fetching filtered products:', error));
+    } else {
+      fetch(`${URL}/cocktails`)
+        .then(response => response.json())
+        .then(data => setProducts(data))
+        .catch(error => console.error('Error fetching products:', error));
+    }
+  }, [selectedLabels, URL]);
 
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
+  // Sort products based on selected criteria
+  const sortedProducts = [...products].sort((a, b) => {
     if (sortCriteria === 'name') {
       return a.name.localeCompare(b.name);
     } else if (sortCriteria === 'rating') {
