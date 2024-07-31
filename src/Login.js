@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { Container, Form, Button, Alert } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import qs from 'qs'; // для преобразования объекта в строку формата URL-кодирования
+import qs from 'qs';
 import Cookies from 'js-cookie';
 
-const Login = () => {
+const Login = ({ setIsLoggedIn }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
@@ -29,13 +29,13 @@ const Login = () => {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded',
         },
-        withCredentials: true, // Это важно для отправки и получения cookies
+        withCredentials: true,
       });
 
       if (response.status === 204) {
-        // Обработка успешного ответа
-        const sessionCookie = Cookies.get('homebar-auth'); // Замените 'session' на имя вашего cookie
+        const sessionCookie = Cookies.get('homebar-auth');
         console.log('Session Cookie:', sessionCookie);
+        setIsLoggedIn(true);
         navigate('/profile');
       } else {
         throw new Error('Login failed');

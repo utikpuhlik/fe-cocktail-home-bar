@@ -10,9 +10,11 @@ import AddCocktail from './AddCocktail';
 import Login from './Login';
 import Register from './Register';
 import Profile from './Profile';
+import Cookies from 'js-cookie';
 
 function App() {
   const [selectedLanguage, setSelectedLanguage] = useState('English');
+  const [isLoggedIn, setIsLoggedIn] = useState(!!Cookies.get('homebar-auth'));
 
   const handleLanguageChange = (language) => {
     setSelectedLanguage(language);
@@ -32,30 +34,37 @@ function App() {
                 <Nav.Link as={Link} to="/">Shots</Nav.Link>
               </Nav>
               <Nav className="ms-auto d-flex align-items-center">
-                <Nav.Link as={Link} to="/add-cocktail">Add Cocktail</Nav.Link>
-                <NavDropdown title={selectedLanguage} id="language-dropdown" className="me-2">
+              <NavDropdown title={selectedLanguage} id="language-dropdown" className="me-2">
                   <NavDropdown.Item onClick={() => handleLanguageChange('English')}>English</NavDropdown.Item>
                   <NavDropdown.Item onClick={() => handleLanguageChange('Russian')}>Russian</NavDropdown.Item>
                 </NavDropdown>
-                <Nav.Link as={Link} to="/profile">
-                  <Button variant="outline-light" className="d-flex align-items-center">
-                    <FaUserCircle className="me-1" /> Profile
-                  </Button>
-                </Nav.Link>
-                <Nav.Link as={Link} to="/login">Login</Nav.Link>
-                <Nav.Link as={Link} to="/register">Register</Nav.Link>
+              {isLoggedIn && (
+                  <>
+                    <Nav.Link as={Link} to="/add-cocktail">Add Cocktail</Nav.Link>
+                    <Nav.Link as={Link} to="/profile">
+                    <Button variant="outline-light" className="d-flex align-items-center">
+                      <FaUserCircle className="me-1" /> Profile
+                    </Button>
+                  </Nav.Link>
+                  </>
+                )}
+                {!isLoggedIn && (
+                  <>
+                    <Nav.Link as={Link} to="/login">Login</Nav.Link>
+                    <Nav.Link as={Link} to="/register">Register</Nav.Link>
+                  </>
+                )}
               </Nav>
             </Navbar.Collapse>
           </Container>
         </Navbar>
         <Container className="mt-4">
           <Routes>
-            // Routers: actually the routes that the user can navigate to in the app
             <Route path="/" element={<ProductList />} />
             <Route path="/cocktails/:cocktail_id" element={<ProductDetail />} />
             <Route path="/add-cocktail" element={<AddCocktail />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+            <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
+            <Route path="/register" element={<Register setIsLoggedIn={setIsLoggedIn} />} />
             <Route path="/profile" element={<Profile />} />
           </Routes>
         </Container>

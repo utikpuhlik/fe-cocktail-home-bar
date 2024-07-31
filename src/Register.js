@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { Container, Form, Button, Alert } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie';
 
-const Register = () => {
+const Register = ({ setIsLoggedIn }) => {
   const [formData, setFormData] = useState({
     username: '',
     email: '',
-    password: '',
+    password: ''
   });
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
   const navigate = useNavigate();
   const URL = process.env.REACT_APP_URL;
 
@@ -16,39 +18,42 @@ const Register = () => {
     const { name, value } = e.target;
     setFormData({
       ...formData,
-      [name]: value,
+      [name]: value
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    fetch(`${URL}/auth/register`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(formData),
-      credentials: 'include', // This is important for sending cookies
-    })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Registration failed');
-        }
-        return response.json();
-      })
-      .then(() => {
-        navigate('/login');
-      })
-      .catch(error => {
-        setError('Registration failed. Please try again.');
+    try {
+      const response = await fetch(`${URL}/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+        credentials: 'include',
       });
+
+      if (response.ok) {
+        const sessionCookie = Cookies.get('homebar-auth');
+        console.log('Session Cookie:', sessionCookie);
+        setIsLoggedIn(true);
+        setSuccess('Registration successful!');
+        navigate('/profile');
+      } else {
+        throw new Error('Registration failed');
+      }
+    } catch (error) {
+      setError('Registration failed. Please try again.');
+    }
   };
 
   return (
     <Container>
       <h2>Register</h2>
       {error && <Alert variant="danger">{error}</Alert>}
+      {success && <Alert variant="success">{success}</Alert>}
       <Form onSubmit={handleSubmit}>
         <Form.Group controlId="username">
           <Form.Label>Username</Form.Label>
