@@ -40,18 +40,22 @@ jobs:
         cache-to: type=gha,mode=max
 
   deploy:
+    needs:
+      - build
     runs-on: ubuntu-latest
     name: Deploy to Kubernetes
 
     steps:
     - name: Set up kubectl
-      uses: azure/setup-kubectl@v1
-      with:
-        version: 'v1.18.0'
+      uses: azure/setup-kubectl@v3
+
+    - name: Create kubeconfig directory
+      run: |
+        mkdir -p $HOME/.kube
 
     - name: Set up Kubeconfig
       run: echo "${{ secrets.KUBECONFIG }}" | base64 --decode > $HOME/.kube/config
 
     - name: Deploy to Kubernetes
       run: |
-        kubectl set image deployment/${{ env.APP_NAME }} ${{ env.APP_NAME }}=ghcr.io/${{ secrets.GHCR_USERNAME }}/${{ env.APP_NAME }}:latest
+        kubectl set image deployment/${{ env.APP_NAME }}-deployment ${{ env.APP_NAME }}=ghcr.io/${{ secrets.GHCR_USERNAME }}/${{ env.APP_NAME }}:latest -n dev

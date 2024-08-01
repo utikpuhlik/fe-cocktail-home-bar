@@ -1,5 +1,5 @@
 # Используем официальный Node.js образ в качестве базового для сборки
-FROM node:16-alpine AS build
+FROM node:20-alpine AS build
 
 # Устанавливаем рабочую директорию
 WORKDIR /app
@@ -11,7 +11,8 @@ COPY package*.json ./
 RUN npm install
 
 # Копируем весь проект
-COPY . .
+COPY ./src ./src
+COPY ./public ./public
 
 # Строим приложение для продакшена
 RUN npm run build
