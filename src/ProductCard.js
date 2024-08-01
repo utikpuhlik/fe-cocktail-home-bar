@@ -27,18 +27,18 @@ const ProductCard = ({ product }) => {
           onError={handleError}
         />
       </div>
-      <Card.Body className="d-flex flex-column">
+      <Card.Body className="d-flex justify-content-end align-items-start flex-column gap-2">
         <Card.Title>{product.name}</Card.Title>
-        <Card.Text>{product.description}</Card.Text>
+        <Card.Text className="h-100">{product.description}</Card.Text>
         <Card.Text><strong>Alcohol Content:</strong> {product.alcohol_content}%</Card.Text>
         <Card.Text><strong>Rating:</strong> {product.rating}</Card.Text>
         {/* Add Labels */}
-        <div className="mt-auto d-flex mb-2">
+        <div className="d-flex">
           {product.labels.map(label => (
             <Badge key={label.id} bg="dark" className="me-1" >{label.name}</Badge>
           ))}
         </div>
-        <div className="mt-auto d-flex justify-content-between align-items-center">
+        <div className="d-flex justify-content-between align-items-center">
           <Link to={`/cocktails/${product.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
             <Button variant="outline-dark" className="me-2">View Details</Button>
           </Link>
