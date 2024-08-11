@@ -59,3 +59,7 @@ jobs:
     - name: Deploy to Kubernetes
       run: |
         kubectl set image deployment/${{ env.APP_NAME }}-deployment ${{ env.APP_NAME }}=ghcr.io/${{ secrets.GHCR_USERNAME }}/${{ env.APP_NAME }}:latest -n dev
+        
+    - name: Restart Deployment to apply new image
+      run: |
+        kubectl rollout restart deployment/${{ env.APP_NAME }}-deployment -n dev
