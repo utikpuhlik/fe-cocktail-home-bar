@@ -1,27 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, Button, Form, Badge, Alert, Container } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import './App.css';
 
-const ProductCard = ({ product }) => {
-  const [userId, setUserId] = useState(null);
+const ProductCard = ({ product, userId }) => { // Receive userId as a prop
   const [showSuccess, setShowSuccess] = useState(false); // State to control the visibility of the success message
   const image = product.images.find(image => image.is_thumbnail);
   const imagePlaceholder = 'https://chibisafe.eucalytics.uk/N2KCFkixOWWs.png';
-
-  useEffect(() => {
-    // Fetch the user ID when the component loads
-    fetch(`${process.env.REACT_APP_URL}/auth/redis/me`, {
-      credentials: 'include',
-    })
-      .then(response => response.json())
-      .then(data => {
-        setUserId(data.id); // Save the user ID
-      })
-      .catch(error => {
-        console.error('Error fetching user ID:', error);
-      });
-  }, []);
 
   const handleMakeOrder = (e) => {
     e.preventDefault();

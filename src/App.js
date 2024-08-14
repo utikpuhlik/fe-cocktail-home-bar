@@ -10,6 +10,7 @@ import AddCocktail from './AddCocktail';
 import Login from './Login';
 import Register from './Register';
 import Profile from './Profile';
+import Cart from './Cart';
 import Cookies from 'js-cookie';
 
 function App() {
@@ -41,6 +42,7 @@ function App() {
               {isLoggedIn && (
                   <>
                     <Nav.Link as={Link} to="/add-cocktail">Add Cocktail</Nav.Link>
+                    <Nav.Link href="/cart">Cart</Nav.Link>
                     <Nav.Link as={Link} to="/profile">
                     <Button variant="outline-light" className="d-flex align-items-center">
                       <FaUserCircle className="me-1" /> Profile
@@ -66,6 +68,7 @@ function App() {
             <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
             <Route path="/register" element={<Register setIsLoggedIn={setIsLoggedIn} />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/cart" element={<Cart />} />
           </Routes>
         </Container>
       </div>
