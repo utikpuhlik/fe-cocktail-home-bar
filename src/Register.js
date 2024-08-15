@@ -26,7 +26,7 @@ const Register = ({ setIsLoggedIn }) => {
     e.preventDefault();
 
     try {
-      const response = await fetch(`${URL}/auth/register`, {
+      const response = await fetch(`${URL}/auth/redis/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
