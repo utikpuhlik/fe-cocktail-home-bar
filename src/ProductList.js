@@ -34,6 +34,7 @@ const ProductList = () => {
 
   const fetchProducts = (page = 1, labelsQuery = '') => {
     setLoading(true); // Set loading to true before the fetch
+    setProducts([]); // Clear the current products to prevent overlap
     const sortQuery = sortCriteria ? `&order_by=${sortCriteria}` : '';
     fetch(`${URL}/cocktails?page=${page}&size=${itemsPerPage}${labelsQuery}${sortQuery}`)
       .then(response => response.json())
@@ -48,6 +49,7 @@ const ProductList = () => {
       });
   };
 
+
   useEffect(() => {
     let labelParams = '';
     if (selectedLabels.length > 0) {
@@ -55,6 +57,7 @@ const ProductList = () => {
     }
     fetchProducts(currentPage, labelParams);
   }, [currentPage, selectedLabels, sortCriteria]);
+
 
   const handleSortChange = (criteria) => {
     setSortCriteria(criteria);

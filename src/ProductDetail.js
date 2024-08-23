@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { Container, Spinner, Alert, Button, Form } from 'react-bootstrap';
+import { Container, Spinner, Alert, Button, Form, Row, Col } from 'react-bootstrap';
 import './ProductDetail.css';
 
 const ProductDetail = () => {
@@ -9,18 +9,24 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
-  const [showUpdateForm, setShowUpdateForm] = useState(false); // State to show/hide the update form
+  const [showUpdateForm, setShowUpdateForm] = useState(false);
+  const [rating, setRating] = useState(null);
+  const [userRating, setUserRating] = useState(null); // Для хранения оценки пользователя
+  const [newRating, setNewRating] = useState(0); // Для новой оценки пользователя
+
+  const URL = process.env.REACT_APP_URL;
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const response = await fetch(`${process.env.REACT_APP_URL}/cocktails/${cocktail_id}`);
+        const response = await fetch(`${URL}/cocktails?cocktail_id=${cocktail_id}`);
         if (!response.ok) {
           throw new Error(`HTTP error! Status: ${response.status}`);
         }
         const data = await response.json();
-        setProduct(data);
-        setSelectedImage(data.images[0].image_url); // Set the first image as the default selected image
+        const cocktail = data.items[0];
+        setProduct(cocktail);
+        setSelectedImage(cocktail.images[0]?.image_url);
       } catch (err) {
         setError(err.message);
       } finally {
@@ -28,8 +34,23 @@ const ProductDetail = () => {
       }
     };
 
+    const fetchRating = async () => {
+      try {
+        const response = await fetch(`${URL}/ratings/cocktail/${cocktail_id}`, {
+          credentials: 'include',
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setUserRating(data.rating);
+        }
+      } catch (err) {
+        console.error('Error fetching rating:', err);
+      }
+    };
+
     fetchProduct();
-  }, [cocktail_id]);
+    fetchRating();
+  }, [cocktail_id, URL]);
 
   const handleUpdateClick = () => {
     setShowUpdateForm(!showUpdateForm);
@@ -39,15 +60,12 @@ const ProductDetail = () => {
     e.preventDefault();
     const formData = new FormData(e.target);
 
-    // Convert form data to JSON object
     const updatedProduct = Object.fromEntries(formData.entries());
-
-    // Convert labels and images to lists
     updatedProduct.labels = updatedProduct.labels.split(',').map(label => ({ name: label.trim() }));
     updatedProduct.images = updatedProduct.images.split(',').map(image_url => ({ image_url: image_url.trim(), is_thumbnail: true }));
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_URL}/cocktails/${cocktail_id}`, {
+      const response = await fetch(`${URL}/cocktails/${cocktail_id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -59,9 +77,34 @@ const ProductDetail = () => {
       }
       const data = await response.json();
       setProduct(data);
-      setShowUpdateForm(false); // Hide the update form after successful update
+      setShowUpdateForm(false);
     } catch (err) {
       setError(err.message);
+    }
+  };
+
+  const handleRatingSubmit = async () => {
+    try {
+      const response = await fetch(`${URL}/rating`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          rating: newRating,
+          cocktail_id: cocktail_id,
+        }),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setUserRating(data.rating);
+      } else {
+        throw new Error('Failed to submit rating');
+      }
+    } catch (err) {
+      console.error('Error submitting rating:', err);
+      setError('Failed to submit rating. Please try again.');
     }
   };
 
@@ -74,49 +117,59 @@ const ProductDetail = () => {
   }
 
   if (!product) {
-    return <Alert variant="warning">Product not found</Alert>;
+    return <Alert variant="warning">Cocktail not found</Alert>;
   }
 
   return (
     <Container className="product-detail-container">
-      <div className="product-images">
-        {product.images && product.images.length > 0 && (
-          <div className="product-main-image">
-            <img src={selectedImage} alt={product.name} />
+      <Row>
+        <Col md={6}>
+          <div className="product-images">
+            {product.images && product.images.length > 0 && (
+              <div className="product-main-image mb-3">
+                <img src={selectedImage} alt={product.name} className="img-fluid" />
+              </div>
+            )}
+            {product.images && product.images.length > 1 && (
+              <div className="product-thumbnails">
+                {product.images.map((img, index) => (
+                  <img
+                    key={index}
+                    src={img.image_url}
+                    alt={product.name}
+                    className="thumbnail-img"
+                    onClick={() => setSelectedImage(img.image_url)}
+                  />
+                ))}
+              </div>
+            )}
           </div>
-        )}
-        {product.images && product.images.length > 1 && (
-          <div className="product-thumbnails">
-            {product.images.map((img, index) => (
-              <img
-                key={index}
-                src={img.image_url}
-                alt={product.name}
-                onClick={() => setSelectedImage(img.image_url)}
-              />
-            ))}
+        </Col>
+        <Col md={6}>
+          <div className="product-info">
+            <h1>{product.name}</h1>
+            <p><strong>Description:</strong> {product.description}</p>
+            <p><strong>Alcohol Content:</strong> {product.alcohol_content}%</p>
+            <p><strong>Rating:</strong> {product.rating}</p>
+            <p><strong>Labels:</strong> {product.labels.map(label => label.name).join(', ')}</p>
+            <p><strong>Recipe:</strong><br />
+              {product.recipe ? (
+                product.recipe.split('\\n').map((line, index) => (
+                  <React.Fragment key={index}>
+                    {line}<br />
+                  </React.Fragment>
+                ))
+              ) : (
+                <span>No recipe available</span>
+              )}
+            </p>
+            <Button variant="outline-dark" className="mt-3" onClick={handleUpdateClick}>
+              {showUpdateForm ? 'Cancel Update' : 'Update Cocktail'}
+            </Button>
           </div>
-        )}
-      </div>
-      <div className="product-info">
-        <h1>{product.name}</h1>
-        <div className="price">1 440,00 Kč</div> {/* Hardcoded price, replace with product price if available */}
-        <div className="description">{product.description}</div>
-        <div className="actions">
-          <Form.Select aria-label="Select size">
-            <option>Select your size</option>
-            <option value="S">Small</option>
-            <option value="M">Medium</option>
-            <option value="L">Large</option>
-            <option value="XL">Extra Large</option>
-          </Form.Select>
-          <Button variant="dark">Add to Cart</Button>
-          <div className="availability">2-5 working days, free standard shipping</div>
-        </div>
-        <Button variant="outline-dark" className="mt-3" onClick={handleUpdateClick}>
-          {showUpdateForm ? 'Cancel Update' : 'Update Cocktail'}
-        </Button>
-      </div>
+        </Col>
+      </Row>
+
       {showUpdateForm && (
         <div className="update-form mt-4">
           <h2>Update Cocktail</h2>
@@ -135,7 +188,7 @@ const ProductDetail = () => {
             </Form.Group>
             <Form.Group controlId="recipe">
               <Form.Label>Recipe</Form.Label>
-              <Form.Control type="text" name="recipe" defaultValue={product.recipe} required />
+              <Form.Control type="text" name="recipe" defaultValue={product.recipe} />
             </Form.Group>
             <Form.Group controlId="alcohol_content">
               <Form.Label>Alcohol Content</Form.Label>
@@ -146,7 +199,7 @@ const ProductDetail = () => {
               <Form.Control type="text" name="labels" defaultValue={product.labels.map(label => label.name).join(', ')} required />
             </Form.Group>
             <Form.Group controlId="images">
-              <Form.Label>Image URL</Form.Label>
+              <Form.Label>Image URLs</Form.Label>
               <Form.Control type="text" name="images" defaultValue={product.images.map(image => image.image_url).join(', ')} required />
             </Form.Group>
             <Button variant="dark" type="submit" className="mt-3">
@@ -155,6 +208,24 @@ const ProductDetail = () => {
           </Form>
         </div>
       )}
+
+      <div className="rating-section mt-4">
+        <h2>Rate this Cocktail</h2>
+        <p>Your current rating: {userRating !== null ? userRating : 'You have not rated this cocktail yet.'}</p>
+        <Form.Group controlId="newRating">
+          <Form.Label>Select a rating (0-10):</Form.Label>
+          <Form.Control
+            type="number"
+            min="0"
+            max="10"
+            value={newRating}
+            onChange={(e) => setNewRating(Number(e.target.value))}
+          />
+        </Form.Group>
+        <Button variant="dark" className="mt-3" onClick={handleRatingSubmit}>
+          Submit Rating
+        </Button>
+      </div>
     </Container>
   );
 };

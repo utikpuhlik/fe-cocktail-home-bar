@@ -1,28 +1,36 @@
 import React, { useEffect, useState } from 'react';
-import { Container, Alert, Button } from 'react-bootstrap';
+import { Container, Alert, Button, ListGroup } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const Profile = ({ setIsLoggedIn }) => {
   const [user, setUser] = useState(null);
+  const [orders, setOrders] = useState([]);
   const [error, setError] = useState(null);
   const URL = process.env.REACT_APP_URL;
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchUser = async () => {
+    const fetchUserAndOrders = async () => {
       try {
-        const response = await axios.get(`${URL}/auth/redis/me`, {
-          withCredentials: true, // Важно для отправки и получения cookies
+        // Fetch user data
+        const userResponse = await axios.get(`${URL}/auth/redis/me`, {
+          withCredentials: true,
         });
-        setUser(response.data);
+        setUser(userResponse.data);
+
+        // Fetch orders for the logged-in user
+        const ordersResponse = await axios.get(`${URL}/orders`, {
+          withCredentials: true,
+        });
+        setOrders(ordersResponse.data);
       } catch (error) {
         setError('You are not logged in. Please log in to view your profile.');
-        console.error("Failed to fetch user:", error);
+        console.error("Failed to fetch user or orders:", error);
       }
     };
 
-    fetchUser();
+    fetchUserAndOrders();
   }, [URL]);
 
   const handleLogout = async () => {
@@ -55,7 +63,29 @@ const Profile = ({ setIsLoggedIn }) => {
       <h2>Profile</h2>
       <p>Email: {user.email}</p>
       <p>Role: {user.role}</p>
-      {/* Добавьте любые другие поля, которые хотите отобразить */}
+
+      <h3>Your Orders</h3>
+      {orders.length === 0 ? (
+        <p>You have no orders yet.</p>
+      ) : (
+        <ListGroup>
+          {orders.map((order) => (
+            <ListGroup.Item key={order.id}>
+              <p><strong>Order ID:</strong> {order.id}</p>
+              <p><strong>Status:</strong> {order.status}</p>
+              <p><strong>Items:</strong></p>
+              <ul>
+                {order.order_cocktails.map((cocktail) => (
+                  <li key={cocktail.id}>
+                    <strong>{cocktail.name}</strong> - {cocktail.description}
+                  </li>
+                ))}
+              </ul>
+            </ListGroup.Item>
+          ))}
+        </ListGroup>
+      )}
+
       <Button variant="outline-dark" onClick={handleLogout} className="mt-3">Logout</Button>
     </Container>
   );
