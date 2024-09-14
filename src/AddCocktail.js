@@ -7,12 +7,12 @@ const AddCocktail = () => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    rating: '',
     recipe: '',
     alcohol_content: '',
     labels: [],
     image_url: '',
-    is_thumbnail: true
+    is_thumbnail: true,
+    in_stock: true // Default value for in_stock
   });
 
   const [availableLabels, setAvailableLabels] = useState([]);
@@ -42,12 +42,18 @@ const AddCocktail = () => {
     });
   };
 
+  const handleStockChange = (e) => {
+    setFormData({
+      ...formData,
+      in_stock: e.target.value === 'true', // Convert string to boolean
+    });
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const data = {
       name: formData.name,
       description: formData.description,
-      rating: parseFloat(formData.rating),
       recipe: formData.recipe,
       alcohol_content: parseFloat(formData.alcohol_content),
       labels: formData.labels,
@@ -57,6 +63,7 @@ const AddCocktail = () => {
           is_thumbnail: formData.is_thumbnail,
         }
       ],
+      in_stock: formData.in_stock // Include in_stock in the request body
     };
 
     fetch(`${URL}/cocktail`, {
@@ -71,9 +78,6 @@ const AddCocktail = () => {
           throw new Error('Network response was not ok');
         }
         return response.json();
-      })
-      .then(() => {
-        navigate('/');
       })
       .catch(error => {
         console.error('Error:', error);
@@ -93,10 +97,6 @@ const AddCocktail = () => {
         <Form.Group controlId="description">
           <Form.Label>Description</Form.Label>
           <Form.Control type="text" name="description" value={formData.description} onChange={handleChange} required />
-        </Form.Group>
-        <Form.Group controlId="rating">
-          <Form.Label>Rating</Form.Label>
-          <Form.Control type="number" step="0.5" name="rating" value={formData.rating} onChange={handleChange} required />
         </Form.Group>
         <Form.Group controlId="recipe">
           <Form.Label>Recipe</Form.Label>
@@ -121,6 +121,13 @@ const AddCocktail = () => {
         <Form.Group controlId="image_url">
           <Form.Label>Image URL</Form.Label>
           <Form.Control type="text" name="image_url" value={formData.image_url} onChange={handleChange} required />
+        </Form.Group>
+        <Form.Group controlId="in_stock">
+          <Form.Label>In Stock</Form.Label>
+          <Form.Select name="in_stock" value={formData.in_stock.toString()} onChange={handleStockChange} required>
+            <option value="true">True</option>
+            <option value="false">False</option>
+          </Form.Select>
         </Form.Group>
         <Button variant="dark" type="submit" className="mt-3">Add Cocktail</Button>
       </Form>

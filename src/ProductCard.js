@@ -1,25 +1,45 @@
-import React, { useState } from 'react';
-import { Card, Button, Form, Badge, Alert, Container } from 'react-bootstrap';
+import React, { useState, useEffect } from 'react';
+import { Card, Button, Form, Badge, Alert, Container, Modal } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import './App.css';
 
-const ProductCard = ({ product, userId }) => { // Receive userId as a prop
-  const [showSuccess, setShowSuccess] = useState(false); // State to control the visibility of the success message
+const ProductCard = ({ product }) => {
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [averageRating, setAverageRating] = useState(null);
+  const [showOrderModal, setShowOrderModal] = useState(false); // State for modal visibility
+  const [userName, setUserName] = useState(''); // State for user's name
+  const [errorMessage, setErrorMessage] = useState(''); // State for error messages
+
   const image = product.images.find(image => image.is_thumbnail);
   const imagePlaceholder = 'https://chibisafe.eucalytics.uk/N2KCFkixOWWs.png';
 
-  const handleMakeOrder = (e) => {
+  useEffect(() => {
+    fetch(`${process.env.REACT_APP_URL}/ratings/${product.id}`, {
+      method: 'GET',
+      credentials: 'include',
+    })
+      .then(response => response.json())
+      .then(data => setAverageRating(data.rating))
+      .catch(error => console.error('Error fetching rating:', error));
+  }, [product.id]);
+
+  const handleOrderClick = () => {
+    // Open the modal when 'Order' button is clicked
+    setShowOrderModal(true);
+  };
+
+  const handleOrderSubmit = (e) => {
     e.preventDefault();
 
-    if (!userId) {
-      console.error('User ID is not available');
+    if (userName.trim() === '') {
+      setErrorMessage('Please enter your name to place an order.');
       return;
     }
 
     const orderData = {
-      user_id: userId,
       status: 'pending',
-      cocktail_ids: [product.id]
+      cocktail_ids: [product.id],
+      user_name: userName.trim(),
     };
 
     fetch(`${process.env.REACT_APP_URL}/order`, {
@@ -27,7 +47,7 @@ const ProductCard = ({ product, userId }) => { // Receive userId as a prop
       headers: {
         'Content-Type': 'application/json',
       },
-      credentials: 'include',
+      // credentials: 'include', // Remove if not needed
       body: JSON.stringify(orderData),
     })
       .then(response => {
@@ -38,17 +58,25 @@ const ProductCard = ({ product, userId }) => { // Receive userId as a prop
       })
       .then(data => {
         console.log('Order created successfully:', data);
-        setShowSuccess(true); // Show the success message
-        setTimeout(() => setShowSuccess(false), 3000); // Hide the success message after 3 seconds
+        setShowSuccess(true);
+        setErrorMessage('');
+        setUserName(''); // Reset the name field
+        setShowOrderModal(false); // Close the modal
+        setTimeout(() => setShowSuccess(false), 3000);
       })
       .catch(error => {
         console.error('Error creating order:', error);
-        alert('Failed to place order. Please try again.');
+        setErrorMessage('Failed to place order. Please try again.');
       });
   };
 
   const handleError = (e) => {
     e.target.src = imagePlaceholder;
+  };
+
+  const handleModalClose = () => {
+    setShowOrderModal(false);
+    setErrorMessage('');
   };
 
   return (
@@ -70,23 +98,64 @@ const ProductCard = ({ product, userId }) => { // Receive userId as a prop
         <Card.Body className="d-flex justify-content-end align-items-start flex-column gap-2">
           <Card.Title>{product.name}</Card.Title>
           <Card.Text className="h-100">{product.description}</Card.Text>
-          <Card.Text><strong>Alcohol Content:</strong> {product.alcohol_content}%</Card.Text>
-          <Card.Text><strong>Rating:</strong> {product.rating}</Card.Text>
+          <Card.Text>
+            <strong>Alcohol Content:</strong> {product.alcohol_content}%
+          </Card.Text>
+          <Card.Text>
+            <strong>Rating:</strong>{' '}
+            {averageRating !== null ? averageRating.toFixed(1) : 'Loading...'}
+          </Card.Text>
           <div className="d-flex">
             {product.labels.map(label => (
-              <Badge key={label.id} bg="dark" className="me-1">{label.name}</Badge>
+              <Badge key={label.id} bg="dark" className="me-1">
+                {label.name}
+              </Badge>
             ))}
           </div>
-          <div className="d-flex justify-content-between align-items-center">
-            <Link to={`/cocktails/${product.id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-              <Button variant="outline-dark" className="me-2">View Details</Button>
+          <div className="d-flex justify-content-between align-items-center w-100 mt-2">
+            <Link
+              to={`/cocktails/${product.id}`}
+              style={{ textDecoration: 'none', color: 'inherit' }}
+            >
+              <Button variant="outline-dark" className="me-2">
+                View Details
+              </Button>
             </Link>
-            <Form onSubmit={handleMakeOrder} className="d-flex align-items-center">
-              <Button type="submit" variant="dark">Order</Button>
-            </Form>
+            <Button variant="dark" onClick={handleOrderClick}>
+              Order
+            </Button>
           </div>
         </Card.Body>
       </Card>
+
+      {/* Order Modal */}
+      <Modal show={showOrderModal} onHide={handleModalClose} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Place Your Order</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          {errorMessage && (
+            <Alert variant="danger">
+              {errorMessage}
+            </Alert>
+          )}
+          <Form onSubmit={handleOrderSubmit}>
+            <Form.Group controlId="userName">
+              <Form.Label>Your Name</Form.Label>
+              <Form.Control
+                type="text"
+                placeholder="Enter your name"
+                value={userName}
+                onChange={e => setUserName(e.target.value)}
+                required
+              />
+            </Form.Group>
+            <Button variant="dark" type="submit" className="mt-3">
+              Submit Order
+            </Button>
+          </Form>
+        </Modal.Body>
+      </Modal>
     </Container>
   );
 };

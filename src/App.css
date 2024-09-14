@@ -40,7 +40,7 @@
 .card-img-container {
   position: relative;
   width: 100%;
-  padding-top: 84.375%; /* Increased height by 1.5 times */
+  padding-top: 100%; /* Increased height by 1.5 times */
   overflow: hidden;
 }
 

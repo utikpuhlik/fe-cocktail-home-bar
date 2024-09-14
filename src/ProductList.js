@@ -1,75 +1,93 @@
 import React, { useState, useEffect } from 'react';
 import ProductCard from './ProductCard';
-import { Container, Row, Col, Dropdown, Pagination, Spinner } from 'react-bootstrap';
+import { Container, Row, Col, Dropdown, Spinner } from 'react-bootstrap';
 import Select from 'react-select';
 import './App.css';
 
-const ProductList = () => {
+const ProductList = ({ drinkType }) => {
   const [products, setProducts] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]); // State for filtered products
   const [labels, setLabels] = useState([]);
   const [userId, setUserId] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const [sortCriteria, setSortCriteria] = useState('alcohol_content');
   const [selectedLabels, setSelectedLabels] = useState([]);
-  const [loading, setLoading] = useState(false); // State to track loading
-  const itemsPerPage = 12;
+  const [loading, setLoading] = useState(false);
   const URL = process.env.REACT_APP_URL;
 
   useEffect(() => {
-    fetch(`${URL}/labels`)
-      .then(response => response.json())
-      .then(data => setLabels(data.map(label => ({ value: label.name, label: label.name }))))
-      .catch(error => console.error('Error fetching labels:', error));
+    const fetchInitialData = async () => {
+      setLoading(true);
 
-    fetch(`${URL}/auth/redis/me`, {
-      credentials: 'include',
-    })
-      .then(response => response.json())
-      .then(data => setUserId(data.id))
-      .catch(error => {
+      // Fetch labels
+      try {
+        const labelResponse = await fetch(`${URL}/labels`);
+        const labelData = await labelResponse.json();
+        setLabels(labelData.map(label => ({ value: label.name, label: label.name })));
+      } catch (error) {
+        console.error('Error fetching labels:', error);
+      }
+
+      // Fetch user ID
+      try {
+        const userResponse = await fetch(`${URL}/auth/redis/me`, {
+          credentials: 'include',
+        });
+        const userData = await userResponse.json();
+        setUserId(userData.id);
+      } catch (error) {
         console.error('Error fetching user ID:', error);
-      });
+      }
+
+      // Fetch all products
+      try {
+        const productResponse = await fetch(`${URL}/cocktails?size=100`); // Fetch all items
+        const productData = await productResponse.json();
+        setProducts(productData.items);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      }
+
+      setLoading(false);
+    };
+
+    fetchInitialData();
   }, [URL]);
 
-  const fetchProducts = (page = 1, labelsQuery = '') => {
-    setLoading(true); // Set loading to true before the fetch
-    setProducts([]); // Clear the current products to prevent overlap
-    const sortQuery = sortCriteria ? `&order_by=${sortCriteria}` : '';
-    fetch(`${URL}/cocktails?page=${page}&size=${itemsPerPage}${labelsQuery}${sortQuery}`)
-      .then(response => response.json())
-      .then(data => {
-        setProducts(data.items);
-        setTotalPages(data.pages);
-        setLoading(false); // Set loading to false after the fetch is complete
-      })
-      .catch(error => {
-        console.error('Error fetching products:', error);
-        setLoading(false); // Set loading to false if there's an error
-      });
-  };
-
-
   useEffect(() => {
-    let labelParams = '';
-    if (selectedLabels.length > 0) {
-      labelParams = selectedLabels.map(label => `&labels=${label.value}`).join('');
-    }
-    fetchProducts(currentPage, labelParams);
-  }, [currentPage, selectedLabels, sortCriteria]);
+    // Apply filtering and sorting whenever dependencies change
+    let updatedProducts = [...products];
 
+    // Filter by labels
+    if (selectedLabels.length > 0) {
+      const selectedLabelValues = selectedLabels.map(label => label.value);
+      updatedProducts = updatedProducts.filter(product =>
+        product.labels.some(label => selectedLabelValues.includes(label.name))
+      );
+    }
+
+    // Filter by drinkType
+    if (drinkType) {
+      updatedProducts = updatedProducts.filter(product => product.drink_type === drinkType);
+    }
+
+    // Sort products
+    if (sortCriteria === 'rating') {
+      updatedProducts.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    } else if (sortCriteria === 'name') {
+      updatedProducts.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (sortCriteria === 'alcohol_content') {
+      updatedProducts.sort((a, b) => b.alcohol_content - a.alcohol_content);
+    }
+
+    setFilteredProducts(updatedProducts);
+  }, [products, selectedLabels, sortCriteria, drinkType]);
 
   const handleSortChange = (criteria) => {
     setSortCriteria(criteria);
   };
 
   const handleLabelChange = (selectedOptions) => {
-    setSelectedLabels(selectedOptions);
-    setCurrentPage(1);
-  };
-
-  const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
+    setSelectedLabels(selectedOptions || []);
   };
 
   return (
@@ -89,7 +107,7 @@ const ProductList = () => {
         <Col md={4} className="d-flex justify-content-end">
           <Dropdown>
             <Dropdown.Toggle variant="outline-dark" id="dropdown-basic">
-              {sortCriteria === 'rating' ? 'Rating' : sortCriteria === 'name' ? 'Name' : sortCriteria === 'alcohol_content' ? 'Alcohol Content' : 'Sort'}
+              {sortCriteria === 'rating' ? 'Rating' : sortCriteria === 'name' ? 'Name' : 'Alcohol Content'}
             </Dropdown.Toggle>
             <Dropdown.Menu>
               <Dropdown.Item onClick={() => handleSortChange('rating')}>Rating</Dropdown.Item>
@@ -105,33 +123,18 @@ const ProductList = () => {
             <span className="visually-hidden">Loading...</span>
           </Spinner>
         </div>
+      ) : filteredProducts.length > 0 ? (
+        <Row>
+          {filteredProducts.map(product => (
+            <Col key={product.id} sm={12} md={6} lg={4} className="mb-4">
+              <ProductCard product={product} userId={userId} />
+            </Col>
+          ))}
+        </Row>
       ) : (
-        <>
-          <Row>
-            {products.map(product => (
-              <Col key={product.id} sm={12} md={6} lg={4} className="mb-4">
-                <ProductCard product={product} userId={userId} />
-              </Col>
-            ))}
-          </Row>
-          <div className="pagination-container">
-            <Pagination>
-              <Pagination.First onClick={() => handlePageChange(1)} disabled={currentPage === 1} />
-              <Pagination.Prev onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} />
-              {[...Array(totalPages)].map((_, index) => (
-                <Pagination.Item
-                  key={index + 1}
-                  active={index + 1 === currentPage}
-                  onClick={() => handlePageChange(index + 1)}
-                >
-                  {index + 1}
-                </Pagination.Item>
-              ))}
-              <Pagination.Next onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} />
-              <Pagination.Last onClick={() => handlePageChange(totalPages)} disabled={currentPage === totalPages} />
-            </Pagination>
-          </div>
-        </>
+        <div className="text-center mt-5">
+          <h4>No products found matching your criteria.</h4>
+        </div>
       )}
     </Container>
   );
