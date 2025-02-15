@@ -53,6 +53,26 @@
   object-fit: cover;
 }
 
+/* Lock the description height */
+.card-description {
+  height: 80px; /* Adjust this value as needed */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3; /* Limits text to 3 lines */
+  -webkit-box-orient: vertical;
+  white-space: normal;
+}
+
+/* Ensuring card body maintains consistent height */
+.card-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 340px; /* Locks all card bodies to the same height */
+}
+
+
 /* PAGINATION */
 .pagination-container {
   display: flex;
