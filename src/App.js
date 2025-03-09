@@ -11,6 +11,8 @@ import Login from './Login';
 import Register from './Register';
 import Profile from './Profile';
 import Cart from './Cart';
+import Seasonal from './Seasonal';
+import Shot from './Shot';
 
 function App() {
   const [selectedLanguage, setSelectedLanguage] = useState('English');
@@ -51,9 +53,11 @@ function App() {
             <Navbar.Toggle aria-controls="basic-navbar-nav" />
             <Navbar.Collapse id="basic-navbar-nav">
               <Nav className="text-start">
-                <Nav.Link as={Link} to="/">Long Drinks</Nav.Link>
-                <Nav.Link as={Link} to="/">Short Drinks</Nav.Link>
-                <Nav.Link as={Link} to="/">Shots</Nav.Link>
+                <Nav.Link as={Link} to="/">Seasonal</Nav.Link>
+                <Nav.Link as={Link} to="/database">Database</Nav.Link>
+                <Nav.Link as={Link} to="/longs">Long Drinks</Nav.Link>
+                <Nav.Link as={Link} to="/shorts">Short Drinks</Nav.Link>
+                <Nav.Link as={Link} to="/shots">Shots</Nav.Link>
               </Nav>
               <Nav className="ms-lg-auto text-start">
                 <NavDropdown
@@ -93,7 +97,9 @@ function App() {
         </Navbar>
         <Container className="mt-4">
           <Routes>
-            <Route path="/" element={<ProductList />} />
+            <Route path="/" element={<Seasonal />} />
+            <Route path="/database" element={<ProductList />} />
+            <Route path="/shots" element={<Shot />} />
             <Route path="/cocktails/:cocktail_id" element={<ProductDetail />} />
             <Route path="/add-cocktail" element={<AddCocktail />} />
             <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
