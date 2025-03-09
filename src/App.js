@@ -49,7 +49,16 @@ function App() {
       <div>
         <Navbar bg="dark" variant="dark" expand="lg">
           <Container>
-            <Navbar.Brand as={Link} to="/">Vadim's Home Cocktail Bar</Navbar.Brand>
+            <Navbar.Brand as={Link} to="/">
+              <img
+                  alt=""
+                  src="logo192.png"
+                  width="30"
+                  height="30"
+                  className="d-inline-block align-top"
+              />{' '}
+              Vadim's Home Cocktail Bar
+            </Navbar.Brand>
             <Navbar.Toggle aria-controls="basic-navbar-nav" />
             <Navbar.Collapse id="basic-navbar-nav">
               <Nav className="text-start">
