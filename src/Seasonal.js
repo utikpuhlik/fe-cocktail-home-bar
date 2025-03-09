@@ -38,8 +38,7 @@ const Seasonal = ({ drinkType, inStock }) => {
 
             try {
                 // Adjust API URL based on inStock prop
-                const stockQuery = inStock ? '&in_stock=true' : '';
-                const productResponse = await fetch(`${URL}/cocktails?size=100${stockQuery}`);
+                const productResponse = await fetch(`${URL}/cocktails?size=100&in_stock=true`);
                 const productData = await productResponse.json();
                 setProducts(productData.items);
             } catch (error) {
