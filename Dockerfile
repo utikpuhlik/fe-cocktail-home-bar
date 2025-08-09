@@ -13,7 +13,7 @@ RUN npm install
 # Копируем весь проект
 COPY ./src ./src
 COPY ./public ./public
-ENV REACT_APP_URL="https://api.eucalytics.uk/bar"
+ENV REACT_APP_URL="https://api-dev.eucalytics.uk/bar"
 
 # Строим приложение для продакшена
 RUN npm run build
