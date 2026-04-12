@@ -1,0 +1,28 @@
+[tasks.pre]
+description = "Run pre-commit hooks"
+run = "mise exec -- prek run --all-files"
+
+[tasks.dev]
+description = "Run the dev server"
+run = "bun run dev"
+
+[tasks.build]
+description = "Build the app"
+run = "bun run build"
+
+[tasks.lint]
+description = "Run biome lint"
+run = "bun run lint"
+
+[tasks.docker]
+description = "Build Docker image"
+run = """
+docker build \
+	--build-arg NEXT_PUBLIC_API_URL="https://api-dev.eucalytics.uk/bar" \
+	--build-arg NEXT_PUBLIC_APP_URL="http://localhost:3000" \
+	-t fe-cocktail-home-bar \
+	.
+"""
+
+[tools]
+prek = "latest"

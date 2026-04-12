@@ -1,31 +1,39 @@
-# Используем официальный Node.js образ в качестве базового для сборки
-FROM node:20-alpine AS build
-
-# Устанавливаем рабочую директорию
+FROM oven/bun:1.3.11-alpine AS base
 WORKDIR /app
 
-# Копируем файл package.json и package-lock.json (если он есть)
-COPY package*.json ./
+FROM base AS install
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile
 
-# Устанавливаем зависимости
-RUN npm install
+FROM base AS builder
 
-# Копируем весь проект
-COPY ./src ./src
-COPY ./public ./public
-ENV REACT_APP_URL="https://api-dev.eucalytics.uk/bar"
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_APP_URL
 
-# Строим приложение для продакшена
-RUN npm run build
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+ENV NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
 
-# Используем Nginx для сервировки статических файлов
-FROM nginx:alpine
+# Fake secrets for build (overridden at runtime via K8s)
+ENV DATABASE_URL=postgres://postgres.com
+ENV BETTER_AUTH_SECRET=fake_secret
 
-# Копируем файлы сборки из предыдущего этапа
-COPY --from=build /app/build /usr/share/nginx/html
+COPY --from=install /app/node_modules ./node_modules
+COPY . .
 
-# Открываем порт
-EXPOSE 80
+RUN bun run build
 
-# Запускаем Nginx
-CMD ["nginx", "-g", "daemon off;"]
+FROM base AS runner
+
+ENV NEXT_TELEMETRY_DISABLED=1
+
+COPY --from=builder --chown=bun:bun /app/.next/standalone ./
+COPY --from=builder --chown=bun:bun /app/public ./public
+COPY --from=builder --chown=bun:bun /app/.next/static ./.next/static
+
+RUN mkdir -p .next/cache && chown -R bun:bun .next
+
+USER bun
+
+EXPOSE 3000
+
+CMD ["bun", "server.js"]
