@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import { type Cocktail, cocktailSchema } from "@/lib/schemas/cocktail";
+import type { TasteProfile } from "./taste-profile";
 import {
 	RATING_TABLE_DEFAULT_SORT,
 	buildTasteFilterOptions,
@@ -63,5 +64,11 @@ describe("rating table helpers", () => {
 
 	test("deduplicates and sorts taste filter options", () => {
 		expect(buildTasteFilterOptions(cocktails)).toEqual(["semi_sweet", "sour"]);
+	});
+
+	test("returns taste filter options as taste profile values", () => {
+		const tasteProfiles: TasteProfile[] = buildTasteFilterOptions(cocktails);
+
+		expect(tasteProfiles).toEqual(["semi_sweet", "sour"]);
 	});
 });

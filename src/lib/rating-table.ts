@@ -1,5 +1,6 @@
 import type { SortingState } from "@tanstack/react-table";
 import type { Cocktail } from "@/lib/schemas/cocktail";
+import type { TasteProfile } from "./taste-profile";
 
 export const RATING_TABLE_DEFAULT_SORT: SortingState = [
 	{ id: "rating", desc: true },
@@ -18,7 +19,7 @@ export function sortCocktailsByRating(cocktails: Cocktail[]): Cocktail[] {
 	});
 }
 
-export function buildTasteFilterOptions(cocktails: Cocktail[]): string[] {
+export function buildTasteFilterOptions(cocktails: Cocktail[]): TasteProfile[] {
 	return [...new Set(cocktails.flatMap((cocktail) => cocktail.taste_profile ?? []))].sort(
 		(left, right) => left.localeCompare(right),
 	);
