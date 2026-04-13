@@ -24,8 +24,8 @@ export default async function CocktailDetailPage({
 	}
 
 	const thumbnail = cocktail.images.find((img) => img.is_thumbnail);
-	const imageUrl =
-		thumbnail?.image_url ?? "https://chibisafe.eucalytics.uk/N2KCFkixOWWs.png";
+	const imageUrl = thumbnail?.image_url ?? "https://cdn.eucalytics.uk/default.svg";
+	const galleryImages = cocktail.images;
 
 	return (
 		<div className="space-y-8">
@@ -40,9 +40,9 @@ export default async function CocktailDetailPage({
 						priority
 						unoptimized
 					/>
-					{cocktail.images.length > 1 && (
+					{galleryImages.length > 1 && (
 						<CardContent className="flex flex-wrap gap-2 p-4">
-							{cocktail.images.map((img) => (
+							{galleryImages.map((img) => (
 								<Image
 									key={img.image_url}
 									src={img.image_url}

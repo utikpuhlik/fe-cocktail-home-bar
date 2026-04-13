@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/card";
 import type { Cocktail } from "@/lib/schemas/cocktail";
 
-const IMAGE_PLACEHOLDER = "https://chibisafe.eucalytics.uk/N2KCFkixOWWs.png";
+const IMAGE_PLACEHOLDER = "https://cdn.eucalytics.uk/default.svg";
 
 export function CocktailCard({ cocktail }: { cocktail: Cocktail }) {
 	const thumbnail = cocktail.images.find((img) => img.is_thumbnail);
