@@ -10,7 +10,13 @@ const nextConfig: NextConfig = {
 	allowedDevOrigins: ["localhost", "127.0.0.1"],
 	images: {
 		remotePatterns: [
-			// Image domains will be added later
+			{
+				protocol: "https",
+				hostname: "cdn.eucalytics.uk",
+				port: "",
+				pathname: "/images/**",
+				search: "",
+			},
 		],
 	},
 };
