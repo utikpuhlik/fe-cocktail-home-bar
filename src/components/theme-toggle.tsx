@@ -9,7 +9,7 @@ export function ThemeToggle() {
 	return (
 		<button
 			onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-			className="rounded-md p-2 hover:bg-accent"
+			className="relative inline-flex h-9 w-9 items-center justify-center rounded-md p-2 hover:bg-accent"
 			type="button"
 		>
 			<Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />

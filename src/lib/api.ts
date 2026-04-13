@@ -45,12 +45,12 @@ export async function getCocktailById(id: string) {
 }
 
 export async function getLabels() {
-	return apiFetch<Array<{ id: number; name: string }>>("/labels");
+	return apiFetch<Array<{ id: string; name: string }>>("/labels");
 }
 
 export async function createOrder(data: {
 	status: string;
-	cocktail_ids: number[];
+	cocktail_ids: string[];
 	user_name: string;
 }) {
 	return apiFetch("/order", {

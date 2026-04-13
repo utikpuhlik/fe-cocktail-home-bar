@@ -5,6 +5,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { getCocktailById } from "@/lib/api";
 import type { Cocktail } from "@/lib/schemas/cocktail";
+import {
+	getTasteProfileBadgeClassName,
+	getTasteProfileLabel,
+	isTasteLabelName,
+} from "@/lib/taste-profile";
 
 export default async function CocktailDetailPage({
 	params,
@@ -24,22 +29,27 @@ export default async function CocktailDetailPage({
 	}
 
 	const thumbnail = cocktail.images.find((img) => img.is_thumbnail);
-	const imageUrl = thumbnail?.image_url ?? "https://cdn.eucalytics.uk/default.svg";
+	const imageUrl =
+		thumbnail?.image_url ?? "https://cdn.eucalytics.uk/default.svg";
 	const galleryImages = cocktail.images;
+	const ingredientLabels = cocktail.labels.filter(
+		(label) => !isTasteLabelName(label.name),
+	);
 
 	return (
 		<div className="space-y-8">
 			<div className="grid gap-8 md:grid-cols-2">
 				<Card className="overflow-hidden">
-					<Image
-						src={imageUrl}
-						alt={cocktail.name}
-						width={600}
-						height={600}
-						className="h-full w-full object-cover"
-						priority
-						unoptimized
-					/>
+					<div className="relative aspect-square overflow-hidden">
+						<Image
+							src={imageUrl}
+							alt={cocktail.name}
+							fill
+							className="object-cover"
+							priority
+							unoptimized
+						/>
+					</div>
 					{galleryImages.length > 1 && (
 						<CardContent className="flex flex-wrap gap-2 p-4">
 							{galleryImages.map((img) => (
@@ -68,6 +78,18 @@ export default async function CocktailDetailPage({
 							<span className="font-medium">ABV:</span>
 							<span>{cocktail.alcohol_content}%</span>
 						</div>
+						{cocktail.taste_profile && (
+							<div className="flex items-center gap-2">
+								<span className="font-medium">Taste:</span>
+								<Badge
+									className={getTasteProfileBadgeClassName(
+										cocktail.taste_profile,
+									)}
+								>
+									{getTasteProfileLabel(cocktail.taste_profile)}
+								</Badge>
+							</div>
+						)}
 						{cocktail.rating !== null && (
 							<div className="flex items-center gap-2">
 								<span className="font-medium">Rating:</span>
@@ -77,7 +99,7 @@ export default async function CocktailDetailPage({
 					</div>
 
 					<div className="flex flex-wrap gap-1">
-						{cocktail.labels.map((label) => (
+						{ingredientLabels.map((label) => (
 							<Badge key={label.id} variant="secondary">
 								{label.name}
 							</Badge>

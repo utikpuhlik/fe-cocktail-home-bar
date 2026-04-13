@@ -4,6 +4,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 const navLinks = [
 	{ href: "/", label: "Seasonal" },
 	{ href: "/database", label: "Database" },
+	{ href: "/rating", label: "Rating" },
 	{ href: "/longs", label: "Long Drinks" },
 	{ href: "/shorts", label: "Short Drinks" },
 	{ href: "/shots", label: "Shots" },
