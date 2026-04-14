@@ -2,6 +2,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import Script from "next/script";
 import { Navbar } from "@/components/layout/navbar";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
@@ -46,6 +47,11 @@ export default function RootLayout({
 				</ThemeProvider>
 				<Analytics />
 				<SpeedInsights />
+				<Script
+					defer
+					src="https://analytics.eucalytics.uk/script.js"
+					data-website-id="81714080-4a2c-4640-9c22-33bbd211bc12"
+				/>
 			</body>
 		</html>
 	);
